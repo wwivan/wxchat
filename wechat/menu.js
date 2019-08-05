@@ -10,12 +10,12 @@ module.exports = {
         "url":"http://49.235.41.147"
       },
       {
-        "name":"我的",
+        "name":"搜索",
         "sub_button":[
           {
             "type":"view",
-            "name":"我的",
-            "url":"http://49.235.41.147"
+            "name":"百度",
+            "url":"http://baidu.com"
           },
           // {
           //   "type": "scancode_waitmsg",
