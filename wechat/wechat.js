@@ -26,12 +26,15 @@
       
  */
 //引入配置对象
-const { appID, appsecret } = require('../config');
+const { appID, appsecret, url } = require('../config');
 //引入发送http请求的库
 const rp = require('request-promise-native');
 const request = require('request');
+const sha1 = require("sha1")
 //引入fs模块
 const { readFile, writeFile, createReadStream, createWriteStream } = require('fs');
+const { resolve, join } = require('path');
+const { writeFileAsync, readFileAsync } = require('../libs/utils');
 //引入接口文件
 const api = require('../libs/api');
 //引入菜单文件
@@ -158,6 +161,105 @@ class Wechat {
         this.access_token = res.access_token;
         this.expires_in = res.expires_in;
         //指定fetchAccessToken方法返回值
+        return Promise.resolve(res);
+      })
+  }
+  /**
+   * 用来获取jsapi_ticket
+   */
+  getTicket() {
+
+    //发送请求
+    return new Promise(async (resolve, reject) => {
+      //获取access_token
+      const data = await this.fetchAccessToken();
+      //定义请求的地址
+      const url = `${api.ticket}&access_token=${data.access_token}`;
+
+      rp({ method: 'GET', url, json: true })
+        .then(res => {
+          //将promise对象状态改成成功的状态
+          resolve({
+            ticket: res.ticket,
+            expires_in: Date.now() + (res.expires_in - 300) * 1000
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          //将promise对象状态改成失败的状态
+          reject('getTicket方法出了问题：' + err);
+        })
+    })
+  }
+
+  /**
+   * 用来保存jsapi_ticket
+   * @param ticket 要保存的票据
+   */
+  saveTicket(ticket) {
+    return writeFileAsync(ticket, 'ticket.txt');
+  }
+
+  /**
+   * 用来读取ticket
+   */
+  readTicket() {
+    return readFileAsync('ticket.txt');
+  }
+
+  /**
+   * 用来检测ticket是否有效的
+   * @param data
+   */
+  isValidTicket(data) {
+    //检测传入的参数是否是有效的
+    if (!data && !data.ticket && !data.expires_in) {
+      //代表ticket无效的
+      return false;
+    }
+
+    return data.expires_in > Date.now();
+  }
+
+  /**
+   * 用来获取没有过期的ticket
+   * @return {Promise<any>} ticket
+   */
+  fetchTicket() {
+    //优化
+    if (this.ticket && this.ticket_expires_in && this.isValidTicket(this)) {
+      //说明之前保存过ticket，并且它是有效的, 直接使用
+      return Promise.resolve({
+        ticket: this.ticket,
+        expires_in: this.ticket_expires_in
+      })
+    }
+
+    return this.readTicket()
+      .then(async res => {
+        //本地有文件
+        //判断它是否过期
+        if (this.isValidTicket(res)) {
+          //有效的
+          return Promise.resolve(res);
+        } else {
+          //过期了
+          const res = await this.getTicket();
+          await this.saveTicket(res);
+          return Promise.resolve(res);
+        }
+      })
+      .catch(async err => {
+        //本地没有文件
+        const res = await this.getTicket();
+        await this.saveTicket(res);
+        return Promise.resolve(res);
+      })
+      .then(res => {
+        //将ticket挂载到this上
+        this.ticket = res.ticket;
+        this.ticket_expires_in = res.expires_in;
+        //返回res包装了一层promise对象（此对象为成功的状态）
         return Promise.resolve(res);
       })
   }
@@ -426,18 +528,43 @@ class Wechat {
     })
   }
 }
+// const Signature = require("../libs/signature")
 
-//测试
-(async () => {
-  const wechatApi = new Wechat();
 
-  let data = await wechatApi.deleteMenu();
-  // console.log(data);
-  data = await wechatApi.createMenu(menu);
-  console.log(data)
-  data = await wechatApi.createMyMenu(menu)
-  console.log(data)
+  //测试
+  (async () => {
+    // const signatureApi = new Signature();
+    // let signature = await signatureApi.signature()
+    // console.log(signature)
 
-})()
+    const wechatApi = new Wechat();
+    const {ticket} = await wechatApi.fetchTicket()
+    console.log(ticket)
+    
+    const noncestr = Math.random().toString().split('.')[1];
+            //获取时间戳
+            const timestamp = Date.now();
+            // 1. 组合参与签名的四个参数：jsapi_ticket（临时票据）、noncestr（随机字符串）、timestamp（时间戳）、url（当前服务器地址）
+            const arr = [
+                `jsapi_ticket=${ticket}`,
+                `noncestr=${noncestr}`,
+                `timestamp=${timestamp}`,
+                `url=${url}`
+            ]
+    
+            // 2. 将其进行字典序排序，以'&'拼接在一起
+            const str = arr.sort().join('&');
+            console.log(str);  //xxx=xxx&xxx=xxx&xxx=xxx
+    
+            // 3. 进行sha1加密，最终生成signature
+            const signature = sha1(str);
+            console.log(signature)
+
+
+    let data = await wechatApi.deleteMenu();
+    // console.log(data);
+    data = await wechatApi.createMenu(menu);
+    console.log(data)
+  })()
 
 module.exports = Wechat;

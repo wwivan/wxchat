@@ -3,8 +3,29 @@
  */
 //引入解析xml数据的库
 const {parseString} = require('xml2js');
+const{resolve} = require("path")
+const {writeFile, readFile} = require('fs');
+// const Wechat = require("../wechat/wechat")
+// const wechatApi = new Wechat()
+// const {ticket} = await wechatApi.fetchTicket();
+  
+//   // 1. 组合参与签名的四个参数：jsapi_ticket（临时票据）、noncestr（随机字符串）、timestamp（时间戳）、url（当前服务器地址）
+//   const arr = [
+//     `jsapi_ticket=${ticket}`,
+//     `noncestr=${noncestr}`,
+//     `timestamp=${timestamp}`,
+//     `url=${url}`
+//   ]
+  
+//   // 2. 将其进行字典序排序，以'&'拼接在一起
+//   const str = arr.sort().join('&');
+//   console.log(str);  //xxx=xxx&xxx=xxx&xxx=xxx
+  
+//   // 3. 进行sha1加密，最终生成signature
+//   const signature = sha1(str);
 
 module.exports = {
+
   getUserDataAsync (req) {
     /*
       用户数据是通过流的方式发送，通过绑定data事件接受数据
@@ -54,5 +75,35 @@ module.exports = {
     }
     //将格式化后的数据返回出去
     return message;
+  },
+  writeFileAsync (data, fileName) {
+    //将对象转化json字符串
+    data = JSON.stringify(data);
+    const filePath = resolve(__dirname, fileName);
+    return new Promise((resolve, reject) => {
+      writeFile(filePath, data, err => {
+        if (!err) {
+          console.log('文件保存成功~');
+          resolve();
+        } else {
+          reject('writeFileAsync方法出了问题：' + err);
+        }
+      })
+    })
+  },
+  readFileAsync (fileName) {
+    const filePath = resolve(__dirname, fileName);
+    return new Promise((resolve, reject) => {
+      readFile(filePath, (err, data) => {
+        if (!err) {
+          console.log('文件读取成功~');
+          //将json字符串转化js对象
+          data = JSON.parse(data);
+          resolve(data);
+        } else {
+          reject('readFileAsync方法出了问题：' + err);
+        }
+      })
+    })
   }
 }
