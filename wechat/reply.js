@@ -204,7 +204,7 @@ module.exports = async message => {
       content = '点击了菜单~~~';
     } else if (message.Event === 'VIEW') {
       //用户点击菜单，跳转到其他链接
-      console.log('用户点击菜单，跳转到其他链接');
+      console.log('用户点击菜单，跳转.......');
     }
   }
   

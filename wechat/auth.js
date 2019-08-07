@@ -76,7 +76,8 @@ module.exports = () => {
       
       //获取用户的消息，返回的数据格式是xml
       const xmlData = await getUserDataAsync(req);
-      // console.log(xmlData);
+      
+      console.log(xmlData);
       /*
         <xml>
           <ToUserName><![CDATA[gh_4fe7faab4d6c]]></ToUserName>   //开发者的id
@@ -89,7 +90,10 @@ module.exports = () => {
        */
       //将xml解析成js对象
       const jsData = await parseXMLAsync(xmlData);
-      // console.log(jsData);
+      // console.log(111111111111000)
+      // console.log(jsData.xml);
+      const openid = jsData.xml.FromUserName
+      console.log(openid)
       /*
         { xml:
          { ToUserName: [ 'gh_4fe7faab4d6c' ],

@@ -263,7 +263,32 @@ class Wechat {
         return Promise.resolve(res);
       })
   }
+  //使用code换取access_token
+  // getUserInfo() {
+  //   //
 
+  //   //发送请求
+  //   return new Promise(async (resolve, reject) => {
+  //     //获取access_token
+  //     const data = await this.fetchAccessToken();
+  //     //定义请求的地址
+  //     const url = `${api.ticket}&access_token=${data.access_token}`;
+
+  //     rp({ method: 'GET', url, json: true })
+  //       .then(res => {
+  //         //将promise对象状态改成成功的状态
+  //         resolve({
+  //           ticket: res.ticket,
+  //           expires_in: Date.now() + (res.expires_in - 300) * 1000
+  //         });
+  //       })
+  //       .catch(err => {
+  //         console.log(err);
+  //         //将promise对象状态改成失败的状态
+  //         reject('getTicket方法出了问题：' + err);
+  //       })
+  //   })
+  // }
   //上传临时素材
   uploadTemporaryMaterial(type, filePath) {
     /*

@@ -1,13 +1,15 @@
 /*
   菜单的配置
  */
-
+const {url,appID} = require("../config")
+const code = 'code'
+const SCOPE = 'snsapi_userinfo'
 module.exports = {
     "button":[
       {
         "type":"view",
         "name":"首页",
-        "url":"http://49.235.41.147"
+        "url":`https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appID}&redirect_uri=${url}&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect`
       },
       {
         "name":"搜索",
@@ -15,6 +17,11 @@ module.exports = {
           {
             "type":"view",
             "name":"百度",
+            "url":"http://baidu.com"
+          },
+          {
+            "type":"view",
+            "name":"百度搜索",
             "url":"http://baidu.com"
           },
           // {
